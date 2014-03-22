@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/help"
+    android:layout_width="wrap_content"
+    android:layout_height="56dp"
+    android:background="@null"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" >
+
+   <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:gravity="center_horizontal"
+        android:padding="10dp"
+        android:text="①点击手机上的MENU键也可以打开和关闭菜单键\n②如果您以返回的形式退回桌面，播放将暂停"
+        android:textColor="#ffffff"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="33dp" >
+    </LinearLayout>
+
+</LinearLayout>

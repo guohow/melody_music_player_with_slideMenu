@@ -1,0 +1,35 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:key="personize"
+        android:title="屏幕" >
+    </PreferenceCategory>
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="MELODY"
+        android:inputType="textCapWords"
+        android:key="flash_text_perf"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="false"
+        android:summary="更改欢迎屏幕显示的内容"
+        android:title="欢迎屏幕文字" />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="if_hide_acBar_perf"
+        android:summary="将隐藏ActionBar等工具栏，下次生效"
+        android:title="显示更多内容" />
+
+    <PreferenceCategory
+        android:key="personize"
+        android:title="视觉" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="mod_perf"
+            android:summary="更改底色以节约电量"
+            android:title="省电模式" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

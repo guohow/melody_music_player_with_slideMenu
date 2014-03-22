@@ -1,0 +1,108 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="right"
+    android:background="@drawable/light_6"
+    android:gravity="right"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".Main$DummySectionFragment" >
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/separator" />
+
+      
+    
+    
+    <Button
+            android:id="@+id/playMod"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+                android:visibility="invisible"
+            android:background="@drawable/btn_shuffle_state" />
+
+        <Button
+            android:id="@+id/previous"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@+id/play"
+            android:background="@drawable/btn_pre"
+            android:scaleType="fitXY" />
+
+        <Button
+            android:id="@+id/next"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/play"
+            android:background="@drawable/btn_next"
+            android:scaleType="fitXY" />
+
+        <Button
+            android:id="@+id/play"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/btn_play"
+            android:scaleType="fitXY" />
+
+        <app.guohow.melody.ui.SlideBarView
+            android:id="@+id/slideBar"
+            android:layout_width="10dp"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/playMod"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:background="@color/transparent"
+            android:paddingRight="@dimen/activity_horizontal_margin" />
+
+        <TextView
+            android:id="@+id/info_all"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/playMod"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:background="@color/blue"
+            android:gravity="center"
+            android:paddingBottom="2dp"
+            android:text="红心队列:正在统计"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:visibility="visible" />
+
+        <ListView
+            android:id="@+id/allSongsList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/info_all"
+            android:background="@color/transparent"
+            android:divider="@drawable/shadow"
+            android:fastScrollEnabled="true"
+            android:listSelector="@drawable/list_selecter_blue" >
+
+        </ListView>
+
+        <ImageView
+            android:id="@+id/artIcon_all"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/info_all"
+            android:background="@drawable/default_album_mid"
+            android:scaleType="fitXY" />
+
+</RelativeLayout>

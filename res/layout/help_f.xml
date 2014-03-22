@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/help_f"
+    android:layout_width="wrap_content"
+    android:layout_height="56dp"
+    android:background="@null"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" >
+
+   <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:gravity="center_horizontal"
+        android:padding="10dp"
+        android:text="您可以点击返回按键返回上层目录"
+        android:textColor="#ffffff"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="33dp" >
+    </LinearLayout>
+
+</LinearLayout>
