@@ -22,7 +22,7 @@ import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
-import app.guohow.melody.help.HelpForMain;
+import app.guohow.melody.playerFragment.PlayingMain;
 import app.guohow.melody.service.MelodyPlayer;
 import app.guohow.melody.ui.MyToast;
 
@@ -32,40 +32,76 @@ import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 
 public class Melody extends SlidingFragmentActivity {
 
+	private class HeadsetPlugReceiver extends BroadcastReceiver {
+
+		private static final String TAG = "HeadsetPlugReceiver";
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (intent.hasExtra("state")) {
+				if (intent.getIntExtra("state", 0) == 0) {
+					MyToast.makeText(context, "耳机未连接", Toast.LENGTH_SHORT)
+							.show();
+					Log.i(TAG, "拔出耳机");
+					MelodyPlayer.mPause();
+					MelodyPlayer.FLAG = 0;
+				} else if (intent.getIntExtra("state", 0) == 1) {
+					MyToast.makeText(context, "耳机已连接", Toast.LENGTH_SHORT)
+							.show();
+					Log.i(TAG, "插入耳机");
+				}
+			}
+
+		}
+
+	}
+
+	private final class MyPhoneStateListener extends PhoneStateListener {
+		@Override
+		public void onCallStateChanged(int state, String incomingNumber) {
+			MelodyPlayer.mPause();
+			MelodyPlayer.FLAG = 0;
+		}
+	}
+
+	private final class PhoneListener extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			MelodyPlayer.mPause();
+			MelodyPlayer.FLAG = 0;
+		}
+	}
+
 	private Fragment mContent;
 	BroadcastReceiver br1;
 	BroadcastReceiver br2;
+
 	ListView listView = null;
 	public static SearchView searchView;
 	NotificationManager mNotificationManager;
-
 	boolean fullScreen;
+
 	public static boolean NEED_NOTI;
+
 	public static String CURRENT_TITLE, ARTIST;
+
 	// Handler
 	Handler handler = new Handler();
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setTitle("");
-		initSlidingMenu(savedInstanceState);
-		// this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
-		init();
+	public void checkNoti() {
+		if (NEED_NOTI) {
 
-		// 启动服务
-		Intent intent = new Intent("com.guohow.melody_sildemenu.musicService");
-		startService(intent);
+			updateNoti(CURRENT_TITLE, ARTIST);
+		}
 
-		// 状态栏通知
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				checkNoti();
-				handler.postDelayed(this, 1000);
-			}
-		});
+	}
+
+	public boolean getIfFullScreen() {
+
+		SharedPreferences spf = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		fullScreen = spf.getBoolean("full_screen_perf", true);
+		return fullScreen;
 	}
 
 	private void init() {
@@ -94,31 +130,29 @@ public class Melody extends SlidingFragmentActivity {
 				PhoneStateListener.LISTEN_CALL_STATE);
 	}
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
-		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-			// 退出时暂停，等待恢复，继续播放
-			MelodyPlayer.mPause();
-			MelodyPlayer.FLAG = 0;
-			finish();
-			return true;
-		}
-		if (keyCode == KeyEvent.KEYCODE_MENU && event.getRepeatCount() == 0) {
+	// 来自android Api文档
+	public void initNotification() {
+		Intent resultIntent;
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				this).setSmallIcon(R.drawable.ic_launcher)
+				.setContentTitle("MELODY").setContentText("now playing");
+		// Creates an explicit intent for an Activity in your appIntent
+		resultIntent = new Intent(this, Melody.class);
+		// The stack builder object will contain an artificial back stack for
+		// the// started Activity.// This ensures that navigating backward from
+		// the Activity leads out of// your application to the Home screen.
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+		// Adds the back stack for the Intent (but not the Intent itself)
+		stackBuilder.addParentStack(Melody.class);
+		// Adds the Intent that starts the Activity to the top of the stack
+		stackBuilder.addNextIntent(resultIntent);
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+				PendingIntent.FLAG_UPDATE_CURRENT);
+		mBuilder.setContentIntent(resultPendingIntent);
+		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-			// showMenu();
-			toggle();
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-
-	@Override
-	protected void onDestroy() {
-		// TODO Auto-generated method stub
-		unregisterReceiver(br1);
-		unregisterReceiver(br2);
-		super.onDestroy();
+		// mId allows you to update the notification later on.
+		mNotificationManager.notify(0, mBuilder.build());
 	}
 
 	/**
@@ -149,15 +183,62 @@ public class Melody extends SlidingFragmentActivity {
 
 	}
 
-	/**
-	 * 
-	 */
-	public void switchContent(Fragment fragment) {
-		mContent = fragment;
-		getSupportFragmentManager().beginTransaction()
-				.replace(R.id.content_frame, fragment).commit();
-		getSlidingMenu().showContent();
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setTitle("");
+		initSlidingMenu(savedInstanceState);
+		// this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		init();
 
+		// 启动服务
+		Intent intent = new Intent("com.guohow.melody_sildemenu.musicService");
+		startService(intent);
+
+		// 状态栏通知
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				checkNoti();
+				handler.postDelayed(this, 1000);
+			}
+		});
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		getMenuInflater().inflate(R.menu.melody_ac_menu, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		unregisterReceiver(br1);
+		unregisterReceiver(br2);
+		super.onDestroy();
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			// 退出时暂停，等待恢复，继续播放
+			MelodyPlayer.mPause();
+			MelodyPlayer.FLAG = 0;
+			MyToast.makeText(this, "播放已暂停", Toast.LENGTH_SHORT).show();
+			finish();
+			return true;
+		}
+		if (keyCode == KeyEvent.KEYCODE_MENU && event.getRepeatCount() == 0) {
+
+			// showMenu();
+			toggle();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	/**
@@ -172,21 +253,21 @@ public class Melody extends SlidingFragmentActivity {
 			return true;
 		case R.id.action_menu_jump:
 			Intent intent = new Intent();
-			intent.setClass(this, Playing.class);
+			intent.setClass(this, PlayingMain.class);
 			startActivity(intent);
 			return true;
 		case R.id.action_menu_help:
-			MyToast.makeText(this, "①点击手机上的MENU键也可以打开和关闭菜单键 \n②如果您以返回的形式退回桌面，播放将暂停", Toast.LENGTH_LONG).show();
+			MyToast.makeText(this,
+					"①点击手机上的MENU键也可以打开和关闭菜单键 \n②如果您以返回的形式退回桌面，播放将暂停",
+					Toast.LENGTH_LONG).show();
+			return true;
+		case R.id.action_menu_toFolder:
+			Intent intent2 = new Intent();
+			intent2.setClass(this, Folder.class);
+			startActivity(intent2);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		getMenuInflater().inflate(R.menu.ac_menu, menu);
-		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -195,36 +276,14 @@ public class Melody extends SlidingFragmentActivity {
 		getSupportFragmentManager().putFragment(outState, "mContent", mContent);
 	}
 
-	// 来自android Api文档
-	public void initNotification() {
-		Intent resultIntent;
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				this).setSmallIcon(R.drawable.ic_launcher)
-				.setContentTitle("MELODY").setContentText("now playing");
-		// Creates an explicit intent for an Activity in your appIntent
-		resultIntent = new Intent(this, Melody.class);
-		// The stack builder object will contain an artificial back stack for
-		// the// started Activity.// This ensures that navigating backward from
-		// the Activity leads out of// your application to the Home screen.
-		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		// Adds the back stack for the Intent (but not the Intent itself)
-		stackBuilder.addParentStack(Melody.class);
-		// Adds the Intent that starts the Activity to the top of the stack
-		stackBuilder.addNextIntent(resultIntent);
-		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
-				PendingIntent.FLAG_UPDATE_CURRENT);
-		mBuilder.setContentIntent(resultPendingIntent);
-		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-		// mId allows you to update the notification later on.
-		mNotificationManager.notify(0, mBuilder.build());
-	}
-
-	public void checkNoti() {
-		if (NEED_NOTI) {
-
-			updateNoti(CURRENT_TITLE, ARTIST);
-		}
+	/**
+	 * 
+	 */
+	public void switchContent(Fragment fragment) {
+		mContent = fragment;
+		getSupportFragmentManager().beginTransaction()
+				.replace(R.id.content_frame, fragment).commit();
+		getSlidingMenu().showContent();
 
 	}
 
@@ -240,54 +299,6 @@ public class Melody extends SlidingFragmentActivity {
 		// Because the ID remains unchanged, the existing notification is
 		// updated.
 		mNotificationManager.notify(notifyID, mNotifyBuilder.build());
-	}
-
-	public boolean getIfFullScreen() {
-
-		SharedPreferences spf = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		fullScreen = spf.getBoolean("full_screen_perf", true);
-		return fullScreen;
-	}
-
-	private final class PhoneListener extends BroadcastReceiver {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			MelodyPlayer.mPause();
-			MelodyPlayer.FLAG = 0;
-		}
-	}
-
-	private final class MyPhoneStateListener extends PhoneStateListener {
-		@Override
-		public void onCallStateChanged(int state, String incomingNumber) {
-			MelodyPlayer.mPause();
-			MelodyPlayer.FLAG = 0;
-		}
-	}
-
-	private class HeadsetPlugReceiver extends BroadcastReceiver {
-
-		private static final String TAG = "HeadsetPlugReceiver";
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (intent.hasExtra("state")) {
-				if (intent.getIntExtra("state", 0) == 0) {
-					MyToast.makeText(context, "耳机未连接", Toast.LENGTH_SHORT)
-							.show();
-					Log.i(TAG, "拔出耳机");
-					MelodyPlayer.mPause();
-					MelodyPlayer.FLAG = 0;
-				} else if (intent.getIntExtra("state", 0) == 1) {
-					MyToast.makeText(context, "耳机已连接", Toast.LENGTH_SHORT)
-							.show();
-					Log.i(TAG, "插入耳机");
-				}
-			}
-
-		}
-
 	}
 
 }

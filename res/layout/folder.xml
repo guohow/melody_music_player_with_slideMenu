@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="right"
-    android:background="@drawable/light_5"
+    android:background="@drawable/light_1"
     android:gravity="right"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -100,7 +100,16 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/info_fav"
-        android:background="@drawable/default_album_mid"
+        android:background="@drawable/img_musiccircle_default_art"
         android:scaleType="fitXY" />
+
+    <Button
+        android:id="@+id/btn_set_fav_f"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignBaseline="@+id/playMod"
+        android:layout_alignBottom="@+id/playMod"
+        android:layout_alignLeft="@+id/playMod"
+        android:background="@drawable/img_mine_favorite_song_set" />
 
 </RelativeLayout>

@@ -19,6 +19,14 @@ public class Splash extends Activity {
 
 	String text;
 
+	public String getText() {
+
+		SharedPreferences spf = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		text = spf.getString("flash_text_perf", "MELODY");
+		return text;
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -45,14 +53,6 @@ public class Splash extends Activity {
 		};
 		timer.schedule(task, 1000 * 1);
 
-	}
-
-	public String getText() {
-
-		SharedPreferences spf = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		text = spf.getString("flash_text_perf", "MELODY");
-		return text;
 	}
 
 }

@@ -23,6 +23,13 @@ public class SQLHelper extends SQLiteOpenHelper {
 		// TODO Auto-generated constructor stub
 	}
 
+	private void init() {
+
+		CREATE_TABLE = "CREATE TABLE" + " " + TABLE_NAME
+				+ "(_id INTEGER PRIMARY KEY AUTOINCREMENT ,"
+				+ "title TEXT,artist TEXT,url TEXT)";// 不要忘记写空格
+	}
+
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		// TODO Auto-generated method stub
@@ -35,13 +42,6 @@ public class SQLHelper extends SQLiteOpenHelper {
 		// TODO Auto-generated method stub
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);// 删除表
 		onCreate(db);// 重新创建
-	}
-
-	private void init() {
-
-		CREATE_TABLE = "CREATE TABLE" + " " + TABLE_NAME
-				+ "(_id INTEGER PRIMARY KEY AUTOINCREMENT ,"
-				+ "title TEXT,artist TEXT,url TEXT)";// 不要忘记写空格
 	}
 
 }

@@ -3,6 +3,7 @@ package app.guohow.melody;
 import java.util.HashMap;
 import java.util.List;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
@@ -33,11 +34,11 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import app.guohow.melody.adapter.MySimpleAdapter;
 import app.guohow.melody.database.SQLHelper;
+import app.guohow.melody.playerFragment.PlayingMain;
 import app.guohow.melody.service.MelodyPlayer;
 import app.guohow.melody.ui.MyToast;
 import app.guohow.melody.utils.ArtWorkUtils;
@@ -51,8 +52,7 @@ public class LocalList extends Fragment {
 	public View mRootView;
 	protected Context mContext;
 	static List<HashMap<String, Object>> data;
-	Button btn_play, btn_next, btn_previous, btn_playMod;
-	SeekBar seekBar;
+	Button btn_play, btn_next, btn_previous, btn_playMod, btn_fav;
 	TextView bottomInfo;
 	ImageView artImage;
 	public static ListView listView = null;
@@ -89,86 +89,14 @@ public class LocalList extends Fragment {
 		super();
 	}
 
-	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		mContext = activity.getApplicationContext();
-		// 初始化
-		MelodyPlayer.context = mContext;
-		UIMonitor.context = mContext;
-		// 注册广播
-		registerBoradcastReceiver();
-	}
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		mRootView = inflater.inflate(R.layout.all, container, false);
-		// 设置actionBar图标
-		getActivity().getActionBar().setLogo(R.drawable.ac_img_menu_local);
-		getActivity().getActionBar().setTitle("");
-		getActivity().getActionBar().setBackgroundDrawable(
-				getResources().getDrawable(R.color.blue));
-		// 是否隐藏action bar
-		if (getHideAcBar()) {
-			getActivity().getActionBar().hide();
-		}
-		return mRootView;
-	}
-
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		// TODO Auto-generated method stub
-
-		// getActivity().getMenuInflater().inflate(R.menu.ac_menu, menu);
-		super.onCreateOptionsMenu(menu, inflater);
-	}
-
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-
-		initMusicListAdapter();
-		listItemInit();
-		onItemLongPressedControler();
-		btn_Control();
-		initColor();
-		updateUI();
-		updateImageUI();
-		UIMonitor.btnCheck();
-		// if (!HAS_UPDATED_DB_ALL) {
-		//
-		// createAllSongsTable();
-		// }
-
-		super.onActivityCreated(savedInstanceState);
-	}
-
-	@Override
-	public void onDestroy() {
-		// TODO Auto-generated method stub
-		mContext.unregisterReceiver(mBroadcastReceiver);
-		super.onDestroy();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * android.support.v4.app.Fragment#onViewStateRestored(android.os.Bundle)
-	 */
-
-	@Override
-	public void onResume() {
-		// TODO Auto-generated method stub
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				btnCheck();
-				handler.postDelayed(this, 1000);
-			}
-		});
-		super.onResume();
+	private void btn_Control() {
+		btn_play = (Button) mRootView.findViewById(R.id.play);
+		btn_next = (Button) mRootView.findViewById(R.id.next);
+		btn_previous = (Button) mRootView.findViewById(R.id.previous);
+		btn_playMod = (Button) mRootView.findViewById(R.id.playMod);
+		btn_fav = (Button) mRootView.findViewById(R.id.btn_set_fav_a);
+		new UIMonitor(btn_play, btn_previous, btn_next, btn_playMod, null,
+				btn_fav);
 	}
 
 	private void btnCheck() {
@@ -183,34 +111,54 @@ public class LocalList extends Fragment {
 		}
 	}
 
-	@Override
-	public void onViewStateRestored(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-		super.onViewStateRestored(savedInstanceState);
+	private boolean getHideAcBar() {
+		SharedPreferences spf = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+
+		return spf.getBoolean("if_hide_acBar_perf", false);
+
 	}
 
-	private void updateUI() {
+	private boolean getMod() {
+		SharedPreferences spf = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
 
-		UIMonitor.btnCheck();
-		if (MelodyPlayer.hasEverPlayed) {
-			bottomInfo.setText(UIMonitor.updatePlayingSongInfo());
-		} else {
-			bottomInfo.setText("本地曲目：" + data.size() + "首");
+		return spf.getBoolean("mod_perf", false);
+
+	}
+
+	private void initActionBar() {
+
+		// 设置actionBar图标
+		ActionBar mActionBar = getActivity().getActionBar();
+		mActionBar.setLogo(R.drawable.ac_img_menu_local);
+		mActionBar.setTitle("");
+		mActionBar.setBackgroundDrawable(getResources().getDrawable(
+				R.color.blue));
+		// 是否隐藏action bar
+		if (getHideAcBar()) {
+			mActionBar.hide();
 		}
 	}
 
-	private void updateImageUI() {
+	private void initColor() {
+		if (getMod()) {
+			listView.setBackgroundResource(R.color.bg_main);
+			listView.setSelector(R.drawable.list_selecter_night);
+			bottomInfo.setBackgroundResource(R.color.bg_dark_tab);
+			getActivity().setTheme(android.R.style.Theme_Holo);
+			getActivity().getActionBar().setBackgroundDrawable(
+					getResources().getDrawable(R.color.bg_dark_tab));
 
-		ArtWorkUtils.getContent(artImage);
+		}
 	}
 
-	public void registerBoradcastReceiver() {
-		IntentFilter myIntentFilter = new IntentFilter();
-		myIntentFilter.addAction(ACTION_NAME);
-		myIntentFilter.addAction(ACTION_NAME_MONITOR);
-		// 注册广播
-		mContext.registerReceiver(mBroadcastReceiver, myIntentFilter);
-	}
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.support.v4.app.Fragment#onViewStateRestored(android.os.Bundle)
+	 */
 
 	public void initMusicListAdapter() {
 
@@ -233,7 +181,7 @@ public class LocalList extends Fragment {
 		MySimpleAdapter adapter = new MySimpleAdapter(mContext, data,
 				R.layout.allitem,
 				new String[] { "title", "artist", "duration" }, new int[] {
-						R.id.mTitle, R.id.mArt, R.id.mDuration });
+						R.id.mTitle, R.id.mArtText, R.id.mDuration });
 		listView.setAdapter(adapter);
 
 		artImage.setOnClickListener(new OnClickListener() {
@@ -241,7 +189,7 @@ public class LocalList extends Fragment {
 			public void onClick(View v) {
 
 				Intent intent = new Intent();
-				intent.setClass(getActivity(), Playing.class);
+				intent.setClass(getActivity(), PlayingMain.class);
 				startActivity(intent);
 			}
 		});
@@ -271,30 +219,35 @@ public class LocalList extends Fragment {
 		});
 	}
 
-	private void btn_Control() {
-		btn_play = (Button) mRootView.findViewById(R.id.play);
-		btn_next = (Button) mRootView.findViewById(R.id.next);
-		btn_previous = (Button) mRootView.findViewById(R.id.previous);
-		btn_playMod = (Button) mRootView.findViewById(R.id.playMod);
-		new UIMonitor(btn_play, btn_previous, btn_next, btn_playMod, seekBar);
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+
+		initMusicListAdapter();
+		listItemInit();
+		onItemLongPressedControler();
+		btn_Control();
+		initColor();
+		updateUI();
+		updateImageUI();
+		UIMonitor.btnCheck();
+		// if (!HAS_UPDATED_DB_ALL) {
+		//
+		// createAllSongsTable();
+		// }
+
+		super.onActivityCreated(savedInstanceState);
 	}
 
-	private void onItemLongPressedControler() {
-		listView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
-
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View arg1,
-					ContextMenuInfo menuInfo) {
-				// TODO Auto-generated method stub
-				_index = ((AdapterContextMenuInfo) menuInfo).position;// 获取menu点击项的position
-				menu.setHeaderIcon(R.drawable.icon_share_sns_music_circle);
-				menu.setHeaderTitle(data.get(_index).get("title").toString());
-				menu.add(0, 0, 0, "添加到我喜欢");
-				menu.add(0, 3, 0, "分享");
-
-			}
-		});
-
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		mContext = activity.getApplicationContext();
+		// 初始化
+		MelodyPlayer.context = mContext;
+		UIMonitor.context = mContext;
+		// 注册广播
+		registerBoradcastReceiver();
 	}
 
 	/*
@@ -362,31 +315,88 @@ public class LocalList extends Fragment {
 
 	}
 
-	private boolean getHideAcBar() {
-		SharedPreferences spf = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		// TODO Auto-generated method stub
 
-		return spf.getBoolean("if_hide_acBar_perf", false);
+		// getActivity().getMenuInflater().inflate(R.menu.ac_menu, menu);
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		mRootView = inflater.inflate(R.layout.all, container, false);
+		initActionBar();
+		return mRootView;
+	}
+
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		mContext.unregisterReceiver(mBroadcastReceiver);
+		super.onDestroy();
+	}
+
+	private void onItemLongPressedControler() {
+		listView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+
+			@Override
+			public void onCreateContextMenu(ContextMenu menu, View arg1,
+					ContextMenuInfo menuInfo) {
+				// TODO Auto-generated method stub
+				_index = ((AdapterContextMenuInfo) menuInfo).position;// 获取menu点击项的position
+				menu.setHeaderIcon(R.drawable.icon_share_sns_music_circle);
+				menu.setHeaderTitle(data.get(_index).get("title").toString());
+				menu.add(0, 0, 0, "添加到我喜欢");
+				menu.add(0, 3, 0, "分享");
+
+			}
+		});
 
 	}
 
-	private boolean getMod() {
-		SharedPreferences spf = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
-
-		return spf.getBoolean("mod_perf", false);
-
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				btnCheck();
+				// UIMonitor.btnCheck();
+				handler.postDelayed(this, 1000);
+			}
+		});
+		super.onResume();
 	}
 
-	private void initColor() {
-		if (getMod()) {
-			listView.setBackgroundResource(R.color.bg_main);
-			listView.setSelector(R.drawable.list_selecter_night);
-			bottomInfo.setBackgroundResource(R.color.bg_dark_tab);
-			getActivity().setTheme(android.R.style.Theme_Holo);
-			getActivity().getActionBar().setBackgroundDrawable(
-					getResources().getDrawable(R.color.bg_dark_tab));
+	@Override
+	public void onViewStateRestored(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onViewStateRestored(savedInstanceState);
+	}
 
+	public void registerBoradcastReceiver() {
+		IntentFilter myIntentFilter = new IntentFilter();
+		myIntentFilter.addAction(ACTION_NAME);
+		myIntentFilter.addAction(ACTION_NAME_MONITOR);
+		// 注册广播
+		mContext.registerReceiver(mBroadcastReceiver, myIntentFilter);
+	}
+
+	private void updateImageUI() {
+
+		UIMonitor.btnCheck();
+		ArtWorkUtils.getContent(artImage);
+	}
+
+	private void updateUI() {
+
+		UIMonitor.btnCheck();
+		if (MelodyPlayer.hasEverPlayed) {
+			bottomInfo.setText(UIMonitor.updatePlayingSongInfo());
+		} else {
+			bottomInfo.setText("本地曲目：" + data.size() + "首");
 		}
 	}
 

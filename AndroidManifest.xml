@@ -76,7 +76,7 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="app.guohow.melody.Playing"
+            android:name="app.guohow.melody.playerFragment.Playing"
             android:label="@string/title_activity_playing"
               android:screenOrientation="portrait"  >
         </activity>
@@ -87,14 +87,22 @@
         </activity>
         <activity
             android:name="app.guohow.melody.help.HelpForFolderActivity"
-            android:label="@string/title_activity_folder"
+            android:label=""
               android:screenOrientation="portrait"  >
         </activity>
         <activity
             android:name="app.guohow.melody.help.HelpForMain"
-            android:label="@string/title_activity_folder"
+            android:label=""
               android:screenOrientation="portrait"  >
         </activity>
+         <activity
+            android:name="app.guohow.melody.playerFragment.PlayingMain"
+            android:label=""
+              android:screenOrientation="portrait"  >
+        </activity>
+         
+        
+        
     </application>
 
 </manifest>

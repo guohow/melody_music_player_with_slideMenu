@@ -32,8 +32,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import app.guohow.melody.adapter.MySimpleAdapter;
 import app.guohow.melody.database.SQLHelper;
-import app.guohow.melody.help.HelpForFolderActivity;
-import app.guohow.melody.help.HelpForMain;
+import app.guohow.melody.playerFragment.PlayingMain;
 import app.guohow.melody.service.MelodyPlayer;
 import app.guohow.melody.ui.MyToast;
 import app.guohow.melody.utils.ArtWorkUtils;
@@ -44,7 +43,7 @@ public class Folder extends Activity {
 
 	TextView bottomInfo;
 	public static ListView mFavourList;
-	Button btn_play, btn_next, btn_previous, btn_playMod;
+	Button btn_play, btn_next, btn_previous, btn_playMod, btn_fav;
 	public static int UPDATE = 1;
 	private static SQLHelper dbHelper;
 	private static String DB_NAME = "mTable.db";
@@ -76,61 +75,16 @@ public class Folder extends Activity {
 
 	};
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.folder);
-		setUI();
-		setListBtn();
-		MelodyPlayer.context = this;
-		UIMonitor.context = this;
-		// 注册广播
-		registerBoradcastReceiver();
-	}
+	// 初始化按钮，并将按钮交给MONITOR处理
+	private void btn_Control() {
+		btn_play = (Button) findViewById(R.id.play);
+		btn_next = (Button) findViewById(R.id.next);
+		btn_previous = (Button) findViewById(R.id.previous);
+		btn_playMod = (Button) findViewById(R.id.playMod);
+		btn_fav = (Button) findViewById(R.id.btn_set_fav_f);
 
-	public void registerBoradcastReceiver() {
-		IntentFilter myIntentFilter = new IntentFilter();
-		myIntentFilter.addAction(ACTION_NAME);
-		myIntentFilter.addAction(ACTION_NAME_MONITOR);
-		// 注册广播
-		registerReceiver(mBroadcastReceiver, myIntentFilter);
-	}
-
-	@Override
-	protected void onDestroy() {
-		// TODO Auto-generated method stub
-		unregisterReceiver(mBroadcastReceiver);
-		super.onDestroy();
-	}
-
-	private void setUI() {
-
-		getActionBar().setLogo(R.drawable.ac_img_menu_favour);
-		getActionBar().setBackgroundDrawable(
-				getResources().getDrawable(R.drawable.actionbar_bg));
-		getActionBar().setTitle("");
-	}
-
-	@Override
-	public void onResume() {
-		// TODO Auto-generated method stub
-
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-
-				if (UPDATE == 1) {
-					createCursorTable();
-					// 初始化列表
-					initList();
-					UPDATE = 0;
-				}
-				btnCheck();
-				handler.postDelayed(this, 2000);
-			}
-		});
-		super.onResume();
+		new UIMonitor(btn_play, btn_previous, btn_next, btn_playMod, null,
+				btn_fav);
 	}
 
 	private void btnCheck() {
@@ -143,45 +97,6 @@ public class Folder extends Activity {
 			btn_play.setBackgroundResource(R.drawable.btn_pause);
 
 		}
-	}
-
-	private void updateUI() {
-
-		UIMonitor.btnCheck();
-		if (MelodyPlayer.hasEverPlayed) {
-			bottomInfo.setText(UIMonitor.updatePlayingSongInfo());
-		} else {
-			bottomInfo.setText("收藏曲目：" + data.size() + "首");
-		}
-	}
-
-	private void updateImageUI() {
-		System.out.println(artImage + "---------------");
-		ArtWorkUtils.getContent(artImage);
-
-	}
-
-	private void setListBtn() {
-		// TODO Auto-generated method stub
-
-		// 表操作
-		if (UPDATE == 1) {
-			createCursorTable();
-			UPDATE = 0;
-		}
-		// 初始化列表
-		initList();
-		// 监听列表事件
-		listItemAda();
-		// 长按事件监听
-		onItemLongPressedControler();
-		// 按钮监听
-		btn_Control();
-		initColor();
-		updateUI();
-		updateImageUI();
-		UIMonitor.btnCheck();
-
 	}
 
 	// 创建、查询
@@ -221,6 +136,35 @@ public class Folder extends Activity {
 
 	}
 
+	// 获取主题设置
+	private boolean getMod() {
+		SharedPreferences spf = PreferenceManager
+				.getDefaultSharedPreferences(this);
+
+		return spf.getBoolean("mod_perf", false);
+
+	}
+
+	private void initActionBarHome() {
+		// 将应用程序图标设置为可点击的按钮
+		getActionBar().setHomeButtonEnabled(true);
+		// 将应用程序图标设置为可点击的按钮,并且在图标上添加向左的箭头
+		// 该句代码起到了决定性作用
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+	}
+
+	// 初始化主题设置
+	private void initColor() {
+		if (getMod()) {
+			mFavourList.setBackgroundResource(R.color.bg_main);
+			mFavourList.setSelector(R.drawable.list_selecter_night);
+			bottomInfo.setBackgroundResource(R.color.bg_dark_tab);
+			setTheme(android.R.style.Theme_Holo);
+			getActionBar().setBackgroundDrawable(
+					getResources().getDrawable(R.color.bg_dark_tab));
+		}
+	}
+
 	private void initList() {
 		mFavourList = (ListView) findViewById(R.id.FavSongsList);
 		bottomInfo = (TextView) findViewById(R.id.info_fav);
@@ -241,7 +185,7 @@ public class Folder extends Activity {
 			public void onClick(View v) {
 
 				Intent intent = new Intent();
-				intent.setClass(Folder.this, Playing.class);
+				intent.setClass(Folder.this, PlayingMain.class);
 				startActivity(intent);
 			}
 		});
@@ -269,36 +213,6 @@ public class Folder extends Activity {
 			}
 
 		});
-	}
-
-	// 初始化按钮，并将按钮交给MONITOR处理
-	private void btn_Control() {
-		btn_play = (Button) findViewById(R.id.play);
-		btn_next = (Button) findViewById(R.id.next);
-		btn_previous = (Button) findViewById(R.id.previous);
-		btn_playMod = (Button) findViewById(R.id.playMod);
-
-		new UIMonitor(btn_play, btn_previous, btn_next, btn_playMod, null);
-	}
-
-	private void onItemLongPressedControler() {
-		mFavourList
-				.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
-
-					@Override
-					public void onCreateContextMenu(ContextMenu menu,
-							View arg1, ContextMenuInfo menuInfo) {
-						// TODO Auto-generated method stub
-						_index = ((AdapterContextMenuInfo) menuInfo).position;// 获取menu点击项的position
-
-						menu.setHeaderIcon(R.drawable.icon_share_sns_music_circle);
-						menu.setHeaderTitle(data.get(_index).get("title")
-								.toString());
-
-						menu.add(0, 6, 0, "移出收藏列表");
-						menu.add(0, 9, 0, "分享");
-					}
-				});
 	}
 
 	// 长按菜单响应
@@ -334,10 +248,51 @@ public class Folder extends Activity {
 	}
 
 	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.folder);
+		setUI();
+		initActionBarHome();
+		setListBtn();
+		MelodyPlayer.context = this;
+		UIMonitor.context = this;
+		// 注册广播
+		registerBoradcastReceiver();
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// TODO Auto-generated method stub
-		getMenuInflater().inflate(R.menu.ac_menu, menu);
+		getMenuInflater().inflate(R.menu.folder_ac_menu, menu);
 		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		unregisterReceiver(mBroadcastReceiver);
+		super.onDestroy();
+	}
+
+	private void onItemLongPressedControler() {
+		mFavourList
+				.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+
+					@Override
+					public void onCreateContextMenu(ContextMenu menu,
+							View arg1, ContextMenuInfo menuInfo) {
+						// TODO Auto-generated method stub
+						_index = ((AdapterContextMenuInfo) menuInfo).position;// 获取menu点击项的position
+
+						menu.setHeaderIcon(R.drawable.icon_share_sns_music_circle);
+						menu.setHeaderTitle(data.get(_index).get("title")
+								.toString());
+
+						menu.add(0, 6, 0, "移出收藏列表");
+						menu.add(0, 9, 0, "分享");
+					}
+				});
 	}
 
 	@Override
@@ -347,36 +302,92 @@ public class Folder extends Activity {
 		case android.R.id.home:
 			finish();
 			return true;
-		case R.id.action_menu_jump:
+		case R.id.action_menu_jump_f:
 			Intent intent = new Intent();
-			intent.setClass(this, Playing.class);
+			intent.setClass(this, PlayingMain.class);
 			startActivity(intent);
 			return true;
-		case R.id.action_menu_help:
+		case R.id.action_menu_help_f:
 			MyToast.makeText(this, "您可以点击返回按键返回上层目录", Toast.LENGTH_LONG).show();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
-	// 获取主题设置
-	private boolean getMod() {
-		SharedPreferences spf = PreferenceManager
-				.getDefaultSharedPreferences(this);
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
 
-		return spf.getBoolean("mod_perf", false);
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+
+				if (UPDATE == 1) {
+					createCursorTable();
+					// 初始化列表
+					initList();
+					UPDATE = 0;
+				}
+				btnCheck();
+				handler.postDelayed(this, 2000);
+			}
+		});
+		super.onResume();
+	}
+
+	public void registerBoradcastReceiver() {
+		IntentFilter myIntentFilter = new IntentFilter();
+		myIntentFilter.addAction(ACTION_NAME);
+		myIntentFilter.addAction(ACTION_NAME_MONITOR);
+		// 注册广播
+		registerReceiver(mBroadcastReceiver, myIntentFilter);
+	}
+
+	private void setListBtn() {
+		// TODO Auto-generated method stub
+
+		// 表操作
+		if (UPDATE == 1) {
+			createCursorTable();
+			UPDATE = 0;
+		}
+		// 初始化列表
+		initList();
+		// 监听列表事件
+		listItemAda();
+		// 长按事件监听
+		onItemLongPressedControler();
+		// 按钮监听
+		btn_Control();
+		initColor();
+		updateUI();
+		updateImageUI();
+		UIMonitor.btnCheck();
 
 	}
 
-	// 初始化主题设置
-	private void initColor() {
-		if (getMod()) {
-			mFavourList.setBackgroundResource(R.color.bg_main);
-			mFavourList.setSelector(R.drawable.list_selecter_night);
-			bottomInfo.setBackgroundResource(R.color.bg_dark_tab);
-			setTheme(android.R.style.Theme_Holo);
-			getActionBar().setBackgroundDrawable(
-					getResources().getDrawable(R.color.bg_dark_tab));
+	private void setUI() {
+
+		getActionBar().setLogo(R.drawable.ac_img_menu_favour);
+		getActionBar().setBackgroundDrawable(
+				getResources().getDrawable(R.drawable.actionbar_bg));
+		getActionBar().setTitle("");
+	}
+
+	private void updateImageUI() {
+		UIMonitor.btnCheck();
+		System.out.println(artImage + "---------------");
+		ArtWorkUtils.getContent(artImage);
+
+	}
+
+	private void updateUI() {
+
+		UIMonitor.btnCheck();
+		if (MelodyPlayer.hasEverPlayed) {
+			bottomInfo.setText(UIMonitor.updatePlayingSongInfo());
+		} else {
+			bottomInfo.setText("收藏曲目：" + data.size() + "首");
 		}
 	}
 }

@@ -16,22 +16,23 @@ import app.guohow.melody.service.MelodyPlayer;
  */
 public class MusicService extends Service {
 
-	private static String TAG = "---MusicService";
-	private IBinder binder = new MusicService.MusicBinder();
-	MelodyPlayer player = null;
-
-	@Override
-	public IBinder onBind(Intent arg0) {
-		// TODO Auto-generated method stub
-		return binder;
-	}
-
 	// 返回music service
 	public class MusicBinder extends Binder {
 		MusicService getService() {
 
 			return MusicService.this;
 		}
+	}
+
+	private static String TAG = "---MusicService";
+	private IBinder binder = new MusicService.MusicBinder();
+
+	MelodyPlayer player = null;
+
+	@Override
+	public IBinder onBind(Intent arg0) {
+		// TODO Auto-generated method stub
+		return binder;
 	}
 
 	@Override

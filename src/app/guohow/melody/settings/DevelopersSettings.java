@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.view.MenuItem;
 
 import com.guohow.melody_sildemenu.R;
 
@@ -32,11 +33,70 @@ public class DevelopersSettings extends PreferenceActivity {
 	 */
 	private static final boolean ALWAYS_SIMPLE_PREFS = false;
 
+	/**
+	 * Determines whether the simplified settings UI should be shown. This is
+	 * true if this is forced via {@link #ALWAYS_SIMPLE_PREFS}, or the device
+	 * doesn't have newer APIs like {@link PreferenceFragment}, or the device
+	 * doesn't have an extra-large screen. In these cases, a single-pane
+	 * "simplified" settings UI should be shown.
+	 */
+	private static boolean isSimplePreferences(Context context) {
+		return ALWAYS_SIMPLE_PREFS
+				|| Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
+				|| !isXLargeTablet(context);
+	}
+
+	/**
+	 * Helper method to determine if the device has an extra-large screen. For
+	 * example, 10" tablets are extra-large.
+	 */
+	private static boolean isXLargeTablet(Context context) {
+		return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
+	}
+
+	private void initActionBarHome() {
+		// 将应用程序图标设置为可点击的按钮
+		getActionBar().setHomeButtonEnabled(true);
+		// 将应用程序图标设置为可点击的按钮,并且在图标上添加向左的箭头
+		// 该句代码起到了决定性作用
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setLogo(R.drawable.ac_img_dev);
+		getActionBar().setBackgroundDrawable(
+				getResources().getDrawable(R.color.holo_red_dark));
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void onBuildHeaders(List<Header> target) {
+		if (!isSimplePreferences(this)) {
+			loadHeadersFromResource(R.xml.pref_dev_headers, target);
+		}
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public boolean onIsMultiPane() {
+		return isXLargeTablet(this) && !isSimplePreferences(this);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			finish();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
 
 		setupSimplePreferencesScreen();
+		initActionBarHome();
 	}
 
 	/**
@@ -55,42 +115,6 @@ public class DevelopersSettings extends PreferenceActivity {
 
 		// Add 'general' preferences.
 		addPreferencesFromResource(R.xml.pref_developers);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public boolean onIsMultiPane() {
-		return isXLargeTablet(this) && !isSimplePreferences(this);
-	}
-
-	/**
-	 * Helper method to determine if the device has an extra-large screen. For
-	 * example, 10" tablets are extra-large.
-	 */
-	private static boolean isXLargeTablet(Context context) {
-		return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
-	}
-
-	/**
-	 * Determines whether the simplified settings UI should be shown. This is
-	 * true if this is forced via {@link #ALWAYS_SIMPLE_PREFS}, or the device
-	 * doesn't have newer APIs like {@link PreferenceFragment}, or the device
-	 * doesn't have an extra-large screen. In these cases, a single-pane
-	 * "simplified" settings UI should be shown.
-	 */
-	private static boolean isSimplePreferences(Context context) {
-		return ALWAYS_SIMPLE_PREFS
-				|| Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
-				|| !isXLargeTablet(context);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public void onBuildHeaders(List<Header> target) {
-		if (!isSimplePreferences(this)) {
-			loadHeadersFromResource(R.xml.pref_dev_headers, target);
-		}
 	}
 
 }

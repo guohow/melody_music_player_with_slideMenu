@@ -31,8 +31,8 @@
         android:layout_below="@+id/app_name"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10.0dip"
-        android:text="V1.2"
-         android:textColor="@color/darker_gray"
+        android:text="V1.4"
+        android:textColor="@color/holo_red_dark"
         android:textSize="18.0sp" />
 
     <TextView

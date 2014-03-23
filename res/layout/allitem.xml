@@ -6,19 +6,6 @@
     Android:padding="5dp" >
 
     <TextView
-        Android:id="@+id/mDuration"
-        Android:layout_width="wrap_content"
-        Android:layout_height="wrap_content"
-        Android:layout_alignBaseline="@+id/mArt"
-        Android:layout_alignBottom="@+id/mArt"
-        Android:layout_alignParentRight="true"
-        Android:layout_marginRight="22dp"
-        Android:text="text"
-        Android:visibility="gone"
-        Android:textColor="@color/bg_dark"
-        Android:textSize="11dp" />
-
-    <TextView
         Android:id="@+id/mTitle"
         Android:layout_width="wrap_content"
         Android:layout_height="wrap_content"
@@ -29,7 +16,7 @@
         Android:textStyle="normal" />
 
     <TextView
-        Android:id="@+id/mArt"
+        Android:id="@+id/mArtText"
         Android:layout_width="wrap_content"
         Android:layout_height="wrap_content"
         Android:layout_alignLeft="@+id/mTitle"
@@ -39,5 +26,18 @@
         Android:text="text"
         Android:textColor="@color/darker_gray"
         Android:textSize="11dp" />
+
+    <TextView
+        Android:id="@+id/mDuration"
+        Android:layout_width="wrap_content"
+        Android:layout_height="wrap_content"
+        Android:layout_alignBaseline="@+id/mArtText"
+        Android:layout_alignBottom="@+id/mArtText"
+        Android:layout_alignParentRight="true"
+        Android:layout_marginRight="32dp"
+        Android:text="text"
+        Android:textColor="@color/bg_dark_tab"
+        Android:textSize="11dp"
+        Android:visibility="visible" />
 
 </RelativeLayout>

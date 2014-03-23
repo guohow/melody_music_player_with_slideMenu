@@ -17,13 +17,6 @@ public class OpenSource extends Activity {
 	WebView show;
 	Dialog dialog;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.open_source);
-		getWebContent();
-	}
-
 	@SuppressLint("SetJavaScriptEnabled")
 	public void getWebContent() {
 
@@ -59,6 +52,13 @@ public class OpenSource extends Activity {
 		show.reload();
 		show.setWebViewClient(new MyWebViewClient(dialog));
 
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.open_source);
+		getWebContent();
 	}
 
 	@Override
